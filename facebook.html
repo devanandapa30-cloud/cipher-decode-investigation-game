@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S. Kurup | Intercepted Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            fb: {
+              blue: '#3b5998',
+              lightbg: '#edeff4',
+              bg: '#ffffff',
+              text: '#333333',
+              link: '#3b5998',
+              border: '#cccccc',
+              header: '#f2f2f2',
+              button: '#5b74a8'
+            }
+          },
+          fontFamily: {
+            tahoma: ['Tahoma', 'Verdana', 'Arial', 'sans-serif'],
+            lucida: ['"Lucida Grande"', 'Tahoma', 'Verdana', 'Arial', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { 
+        user-select: none; 
+        background-color: #ffffff;
+        color: #333333;
+        margin: 0;
+        padding: 0;
+        font-family: "Lucida Grande", Tahoma, Verdana, Arial, sans-serif;
+    }
+    
+    /* Decryption Styles */
+    .cipher-char {
+        color: #d9534f;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0 2px;
+        background-color: #f9f2f4;
+        border: 1px solid #eba5a3;
+        border-radius: 2px;
+        transition: all 0.2s;
+    }
+    .cipher-char:hover {
+        background-color: #d9534f;
+        color: #fff;
+    }
+    .cipher-char.locked {
+        color: #999; 
+        background-color: #eee;
+        border-color: #ccc;
+        cursor: not-allowed;
+    }
+    .solved-char {
+        color: #008800;
+        font-weight: bold;
+        animation: highlight 1.5s ease-out forwards;
+    }
+
+    @keyframes highlight { 
+        0% { background-color: #ffff99; } 
+        100% { background-color: transparent; } 
+    }
+
+    /* Old FB Dialog Box */
+    .fb-dialog {
+        border: 8px solid rgba(82, 82, 82, 0.7);
+        border-radius: 8px;
+        background-clip: padding-box;
+    }
+    .fb-dialog-header {
+        background: #6d84b4;
+        border: 1px solid #3b5998;
+        color: white;
+        font-weight: bold;
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+    .fb-dialog-content {
+        background: white;
+        border: 1px solid #555;
+        border-top: none;
+    }
+    .fb-dialog-footer {
+        background: #f2f2f2;
+        border-top: 1px solid #ccc;
+        padding: 8px 10px;
+        text-align: right;
+    }
+    
+    .fb-button {
+        background-color: #3b5998;
+        border-color: #d9dfea #0e1f5b #0e1f5b #d9dfea;
+        border-style: solid;
+        border-width: 1px;
+        color: #fff;
+        padding: 2px 15px 3px 15px;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .fb-button:hover { background-color: #4a67a1; }
+    .fb-button-cancel {
+        background-color: #f2f2f2;
+        border: 1px solid #999;
+        color: #333;
+        padding: 2px 15px 3px 15px;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .fb-button-cancel:hover { background-color: #e6e6e6; }
+
+    /* Old FB Chat Window */
+    .fb-chat-window {
+        width: 300px;
+        height: 360px;
+        background: white;
+        border: 1px solid #333;
+        border-bottom: none;
+        border-radius: 3px 3px 0 0;
+        box-shadow: -1px -1px 3px rgba(0,0,0,0.2);
+        display: flex;
+        flex-direction: column;
+    }
+    .fb-chat-header {
+        background-color: #3b5998;
+        color: white;
+        padding: 6px 8px;
+        font-weight: bold;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 2px 2px 0 0;
+        cursor: pointer;
+    }
+    .fb-chat-header:hover {
+        background-color: #4a67a1;
+    }
+
+    /* The gear in the chat bar -- a quiet secondary way into the key table.
+       Deliberately not animated: the profile photo key is the real one. */
+    .cog-hotkey {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 3px;
+        border-radius: 2px;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.15s ease;
+    }
+    .cog-hotkey:hover { opacity: 1; }
+    .cog-hotkey:hover i { color: #3b5998; }
+
+    /* The admin key, tucked into the corner of Kurup's profile photo.
+       Kept deliberately faint so it sits in the photo rather than on top of
+       it: no badge, no border, no shadow at rest -- just a small tilted key.
+       An emoji ignores CSS `color`, so both the dark brown and the hover
+       lightening are done with filter: dim the stock gold key and warm it. */
+    .pic-admin-key {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        line-height: 1;
+        border-radius: 9999px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        opacity: 0.6;
+        transform: rotate(-15deg);
+        filter: brightness(0.26) saturate(2.2) hue-rotate(-8deg);
+        transition: filter 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+    }
+    .pic-admin-key:hover {
+        opacity: 1;
+        filter: brightness(1.3) saturate(1.15) hue-rotate(-8deg);
+        background: rgba(255, 255, 255, 0.13);
+    }
+  </style>
+</head>
+<body class="w-full relative min-h-screen overflow-y-scroll">
+
+  <!-- FULLSCREEN IMAGE MODAL -->
+  <div id="image-modal" class="fixed inset-0 z-[300] bg-black/90 hidden flex flex-col items-center justify-center p-4 cursor-pointer" onclick="closeImageModal()">
+      <div class="absolute top-4 right-6 text-white text-3xl cursor-pointer hover:text-gray-300"><i class="fas fa-times"></i></div>
+      <img id="image-modal-img" src="" class="max-w-full max-h-[90vh] object-contain border border-gray-700 shadow-2xl cursor-default" onclick="event.stopPropagation()">
+  </div>
+
+  <!-- START OVERLAY -->
+  <div id="start-overlay" class="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center text-fb-text cursor-pointer" onclick="enterGame()">
+      <div class="mb-6 relative">
+          <h1 class="text-6xl font-tahoma font-bold text-fb-blue tracking-tighter">facebook</h1>
+          <div class="absolute -bottom-3 -right-6 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-sm font-bold shadow cursor-pointer hover:bg-red-700" title="?" onclick="event.stopPropagation(); enterGame(); showKeyModal();">INTERCEPTED</div>
+      </div>
+      <h2 class="text-xl font-bold mb-4 text-gray-700">TARGET: Sukumara Kurup</h2>
+      <div class="bg-fb-lightbg border border-fb-border p-6 max-w-lg text-sm mb-8 leading-relaxed shadow-sm">
+          <p class="mb-3"><span class="font-bold text-red-600">MISSION BRIEF:</span> We have intercepted the hidden communications of India's most wanted fugitive. His private messages are encrypted.</p>
+          <p class="mb-3">Your objective is to decrypt the chat and <span class="font-bold text-fb-blue">FIND HIS CURRENT LOCATION</span>:</p>
+          <ol class="list-decimal ml-6 mb-3">
+              <li>Open the Chat Bar at the bottom right.</li>
+              <li>Click any <span class="cipher-char">RED LETTER</span> in the chats to guess its true meaning.</li>
+              <li><span class="text-red-600 font-bold">Warning:</span> Wrong guesses will lock that letter for 60 seconds.</li>
+          </ol>
+          <p class="text-[11px] text-gray-500 italic">Field note: not every tool on this page is listed in the menus. Search the page itself.</p>
+      </div>
+      <button class="fb-button text-sm px-6 py-2 shadow">Access Intercepted Profile</button>
+  </div>
+
+  <!-- SOLVER MODAL -->
+  <div id="solver-modal" class="fixed inset-0 z-[180] bg-white/50 hidden flex items-center justify-center p-4">
+      <div class="fb-dialog w-80 shadow-lg">
+          <div class="fb-dialog-header flex justify-between items-center">
+              <span>Security Decryption Tool</span>
+              <i class="fas fa-times cursor-pointer" onclick="closeSolver()"></i>
+          </div>
+          <div class="fb-dialog-content p-6 flex flex-col items-center">
+              <div class="text-sm text-gray-600 mb-4 text-center">Enter the correct letter to decrypt the cipher across this section.</div>
+              <div class="text-2xl text-fb-text mb-4 font-mono font-bold bg-gray-100 p-3 border border-gray-300 rounded w-full text-center">
+                  <span class="text-red-500" id="solver-target">?</span> <i class="fas fa-arrow-right text-sm mx-2 text-gray-400"></i> <span class="text-green-600">?</span>
+              </div>
+              <input type="text" id="solver-input" maxlength="1" class="border border-gray-400 p-2 text-center text-xl w-16 mb-2 focus:outline-none focus:border-fb-blue uppercase font-mono font-bold" placeholder="?">
+              
+              <div id="solver-timer" class="hidden text-red-600 font-bold text-sm mb-2 font-mono bg-red-100 px-3 py-1 border border-red-200">LOCKED: 60s</div>
+              <div id="solver-msg" class="text-xs h-4 mb-2 text-center"></div>
+          </div>
+          <div class="fb-dialog-footer">
+              <button onclick="closeSolver()" class="fb-button-cancel mr-2">Cancel</button>
+              <button id="solver-submit-btn" onclick="submitSolution()" class="fb-button">Decrypt</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- KEY MODAL -->
+  <div id="key-modal" class="fixed inset-0 z-[160] bg-white/50 hidden flex items-center justify-center p-4">
+      <div class="fb-dialog w-full max-w-2xl shadow-lg flex flex-col max-h-[90vh]">
+          <div class="fb-dialog-header flex justify-between items-center">
+              <span><i class="fas fa-key mr-1"></i> Decryption Key Reference</span>
+              <i class="fas fa-times cursor-pointer hover:text-gray-300" onclick="closeKeyModal()"></i>
+          </div>
+          <div class="fb-dialog-content p-0 overflow-y-auto bg-white">
+              <div class="bg-fb-lightbg p-2 text-xs font-bold text-gray-600 border-b border-fb-border sticky top-0 text-center">
+                  SORTED BY ENCRYPTED LETTER (A-Z)
+              </div>
+              <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3 font-mono text-sm" id="key-content">
+                  <!-- Injected via JS -->
+              </div>
+          </div>
+          <div class="fb-dialog-footer">
+              <button onclick="closeKeyModal()" class="fb-button">Close</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- CHAT LOCK MODAL -->
+  <div id="chat-lock-modal" class="fixed inset-0 z-[170] bg-black/40 hidden flex items-center justify-center p-4">
+      <div class="fb-dialog w-80 shadow-lg">
+          <div class="fb-dialog-header flex justify-between items-center">
+              <span><i class="fas fa-lock mr-1"></i> Encrypted Conversation</span>
+              <i class="fas fa-times cursor-pointer" onclick="closeChatLockModal()"></i>
+          </div>
+          <div class="fb-dialog-content p-6 flex flex-col items-center">
+              <img id="chat-lock-img" src="" class="w-16 h-16 border border-gray-300 mb-3 object-cover">
+              <div class="text-sm text-gray-600 mb-4 text-center" id="chat-lock-desc">
+                  This conversation is locked. Enter the key to unlock it.
+              </div>
+              <div id="chat-lock-input-wrap" class="w-full">
+                  <input type="text" id="chat-lock-input" maxlength="24"
+                         class="border border-gray-400 p-2 text-center text-sm w-full mb-2 focus:outline-none focus:border-fb-blue font-mono uppercase"
+                         placeholder="ACCESS KEY">
+              </div>
+              <div id="chat-lock-msg" class="text-xs h-4 mb-1 text-center"></div>
+          </div>
+          <div class="fb-dialog-footer">
+              <button onclick="closeChatLockModal()" class="fb-button-cancel mr-2">Cancel</button>
+              <button id="chat-lock-submit-btn" onclick="submitChatLockKey()" class="fb-button">Unlock</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- TOP BLUE NAVIGATION BAR -->
+  <nav class="bg-fb-blue w-full h-[42px] fixed top-0 z-40 shadow-sm flex justify-center">
+      <div class="w-[980px] h-full flex items-center justify-between px-4">
+          <div class="flex items-center gap-6">
+              <h1 class="text-white font-tahoma font-bold text-2xl tracking-tighter mt-1 cursor-pointer" onclick="loadProfile('sk')">facebook</h1>
+              <div class="flex items-center bg-white h-[22px] px-1 border border-[#1d2a5b]">
+                  <input type="text" class="text-xs w-[200px] focus:outline-none px-1" placeholder="Search">
+                  <div class="bg-fb-lightbg border border-gray-300 h-[18px] w-[24px] flex items-center justify-center cursor-pointer hover:bg-gray-200">
+                      <i class="fas fa-search text-gray-500 text-[10px]"></i>
+                  </div>
+              </div>
+          </div>
+          <div class="flex text-white text-[11px] font-bold gap-4 items-center">
+              <span class="hover:underline cursor-pointer">Home</span>
+              <span class="hover:underline cursor-pointer" onclick="loadProfile('sk')">Profile</span>
+
+              <!-- NOTE: the header used to carry a Messages dropdown with two
+                   conversation previews. It is gone on purpose. Those previews
+                   printed the message text in the clear, which handed over
+                   investigation material without any key, and the rows opened
+                   chats from the nav bar. Conversations are reached from the
+                   chat list on the right, and every one of them is keyed. -->
+
+              <!-- NOTE: the "TEMP: decrypt all" button used to sit here, next to
+                   Account. It is gone. Revealing every ciphered letter with one
+                   click took the puzzle away from anyone who found it, and a
+                   participant is meant to work the letters out. If a
+                   facilitator needs the page readable for a walkthrough, set
+                   isAutoDecrypted = true in the console and call
+                   renderOpenChats(). -->
+
+              <span class="hover:underline cursor-pointer">Account <i class="fas fa-caret-down"></i></span>
+
+              <!-- NOTE: the key reference tool is NOT in the nav bar. It opens
+                   from the small key on Kurup's profile photo (also the cog in
+                   the chat bar, the INTERCEPTED tag, or Ctrl+Shift+A). -->
+          </div>
+      </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <div class="w-[980px] mx-auto mt-[55px] flex gap-4 pb-20">
+      
+      <!-- LEFT SIDEBAR -->
+      <div class="w-[200px] shrink-0 flex flex-col gap-4">
+          <div class="border border-fb-border p-1 bg-white shadow-sm relative" id="sidebar-photo-frame">
+              <img id="sidebar-img" src="assets/IMG_0761.PNG" class="w-full h-auto object-cover aspect-square">
+              <!-- Hidden admin key. Inline display:none is deliberate: it beats the
+                   .pic-admin-key class rule, so loadProfile() can show/hide it. -->
+              <span id="pic-admin-key" class="pic-admin-key" style="display: none;" title="?" onclick="event.stopPropagation(); showKeyModal()">&#128273;</span>
+          </div>
+          
+          <div class="flex flex-col gap-1 text-[11px] text-fb-link font-lucida">
+              <a href="#" id="sidebar-photos-link" class="hover:bg-fb-lightbg hover:underline p-1 px-2 border-b border-gray-100 font-bold text-gray-700">View Photos of Sukumara (2)</a>
+              <a href="#" id="sidebar-msg-link" class="hover:bg-fb-lightbg hover:underline p-1 px-2 border-b border-gray-100">Send Sukumara a Message</a>
+              <a href="#" id="sidebar-report-link" class="hover:bg-fb-lightbg hover:underline p-1 px-2 border-b border-gray-100">Report Profile</a>
+          </div>
+
+          <!-- AUTHENTIC OLD FB ABOUT SECTION -->
+          <div class="border border-fb-border bg-white mt-2">
+              <div class="bg-fb-lightbg border-b border-fb-border px-2 py-1 text-xs font-bold text-gray-700">About</div>
+              <div class="p-2 text-[11px] text-gray-600 flex flex-col gap-1.5">
+                  <div class="flex"><span class="text-gray-400 w-20 shrink-0">Work:</span> <span id="sidebar-work" class="text-fb-link hover:underline cursor-pointer">Manager at Persian Oil Company</span></div>
+                  <div class="flex"><span class="text-gray-400 w-20 shrink-0">Current City:</span> <span id="sidebar-city" class="text-fb-link hover:underline cursor-pointer">Abu Dhabi, UAE</span></div>
+                  <div class="flex"><span class="text-gray-400 w-20 shrink-0">Hometown:</span> <span id="sidebar-hometown" class="text-fb-link hover:underline cursor-pointer">Cheriyanad, Kerala</span></div>
+                  <div class="flex"><span class="text-gray-400 w-20 shrink-0">Relationship:</span> <span id="sidebar-status" class="text-fb-link hover:underline cursor-pointer">Married</span></div>
+              </div>
+          </div>
+
+          <div class="border border-fb-border bg-white mt-2">
+              <div class="bg-fb-lightbg border-b border-fb-border px-2 py-1 text-xs font-bold text-gray-700 flex justify-between">
+                  <span>Friends</span> <span id="sidebar-assoc-count" class="font-normal text-fb-link">8</span>
+              </div>
+              <div id="sidebar-assoc-list" class="p-2 grid grid-cols-3 gap-2">
+                  <!-- Injected via JS -->
+              </div>
+          </div>
+      </div>
+
+      <!-- RIGHT MAIN CONTENT (THE WALL) -->
+      <div class="flex-1 flex flex-col">
+          <h2 id="wall-header-name" class="text-2xl font-tahoma font-bold text-[#1d2a5b] mb-2">Sukumara Kurup</h2>
+          <div class="flex items-end border-b border-fb-blue mb-4">
+              <div class="bg-fb-blue text-white text-xs font-bold px-3 py-1.5 border border-fb-blue rounded-t-sm cursor-pointer">Wall</div>
+              <div class="bg-fb-header text-fb-link text-xs font-bold px-3 py-1.5 border border-fb-border border-b-0 ml-1 rounded-t-sm cursor-pointer hover:bg-white">Info</div>
+              <div class="bg-fb-header text-fb-link text-xs font-bold px-3 py-1.5 border border-fb-border border-b-0 ml-1 rounded-t-sm cursor-pointer hover:bg-white">Photos</div>
+          </div>
+
+          <!-- THE POST BOX -->
+          <div id="status-box-container" class="bg-fb-lightbg border border-fb-border p-3 mb-4 flex flex-col shadow-sm">
+              <div class="text-[11px] font-bold text-gray-600 mb-2">Share: <span class="font-normal text-fb-link ml-2"><i class="fas fa-pencil-alt text-gray-400"></i> Status</span> <span class="font-normal text-fb-link ml-2"><i class="fas fa-camera text-gray-400"></i> Photo</span> <span class="font-normal text-fb-link ml-2"><i class="fas fa-link text-gray-400"></i> Link</span></div>
+              <textarea id="status-input" class="w-full border border-gray-300 h-12 p-1 text-xs text-gray-800 focus:outline-none resize-none" placeholder="What's on your mind?"></textarea>
+              <div class="flex justify-end mt-2">
+                  <button onclick="postStatus()" class="bg-[#5b74a8] text-white font-bold text-[11px] px-4 py-1 border border-[#1d2a5b] hover:bg-[#4a67a1]">Share</button>
+              </div>
+          </div>
+
+          <div id="wall-posts" class="flex flex-col">
+              <!-- Dynamically populated via JS -->
+          </div>
+      </div>
+  </div>
+
+  <!-- FIXED BOTTOM CHAT BAR -->
+  <div class="fixed bottom-0 right-10 flex items-end gap-2 z-[100]" id="chat-dock-container">
+      <!-- Chat Windows will be injected here via JS -->
+      <div id="active-chats-area" class="flex gap-2 items-end"></div>
+
+      <!-- Main Chat Toggle List -->
+      <div class="w-56 bg-white border border-[#333] border-b-0 rounded-t-sm flex flex-col shadow-sm">
+          <div class="bg-[#edeff4] px-2 py-1.5 flex justify-between items-center cursor-pointer hover:bg-[#d8dfea] border-b border-[#ccc] rounded-t-sm" onclick="toggleChatList()">
+              <span class="text-[11px] font-bold text-[#333] flex items-center gap-2">
+                  <div class="w-2 h-2 bg-green-500 rounded-full border border-green-700"></div> Chat (8)
+              </span>
+              <span class="cog-hotkey" title="?" onclick="event.stopPropagation(); showKeyModal()"><i class="fas fa-cog text-[10px] text-gray-500"></i></span>
+          </div>
+          
+          <div id="chat-friend-list" class="hidden bg-white max-h-64 overflow-y-auto">
+              <!-- Populated via JS -->
+          </div>
+      </div>
+  </div>
+
+  <!-- ============================================================================
+       ENCODED CHAT TRANSCRIPTS
+       Generated by:  node tools/build-chats.js   (edit chat-data.json instead)
+       This is deliberately unreadable -- do not hand-edit. See tools/build-chats.js
+       ============================================================================ -->
+  <script type="text/plain" id="chat-blob">
+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
+    </script>
+
+  <script>
+    // --- DATABASE ---
+    const contactDB = {
+        'sk': { 
+            name: 'Sukumara Kurup', 
+            img: 'assets/IMG_0761.PNG',
+            work: 'Manager at Persian Oil Company',
+            city: 'Abu Dhabi, UAE',
+            hometown: 'Cheriyanad, Kerala',
+            status: 'Married',
+            associates: ['sharadha', 'izaakh', 'leo', 'ar_builders', 'pillai', 'shahu', 'lalitha', 'ponnappan', 'walid']
+        },
+        'sharadha': {
+            name: 'Sharadha Kurup',
+            img: 'assets/IMG_0913.PNG',
+            work: 'Housewife',
+            city: 'Abu Dhabi, UAE',
+            hometown: 'Kerala, India',
+            status: 'Married',
+            associates: ['sk']
+        },
+        'lalitha': {
+            name: 'Lalitha',
+            img: 'assets/IMG_0934.PNG',
+            work: 'Retired',
+            city: 'Bhopal, India',
+            hometown: 'Kerala, India',
+            status: 'Widowed',
+            associates: ['sk']
+        },
+        'izaakh': { 
+            name: 'Izaakh', 
+            img: 'assets/IMG_0931.PNG',
+            work: 'Unknown',
+            city: 'Bombay, India',
+            hometown: 'Unknown',
+            status: 'Single',
+            associates: ['sk']
+        },
+        'leo': { 
+            name: 'Leo Kavinsky', 
+            img: 'assets/IMG_0759.PNG',
+            work: 'Freelance Fixer',
+            city: 'Bombay, India',
+            hometown: 'Unknown',
+            status: 'Single',
+            associates: ['sk']
+        },
+        'ar_builders': { 
+            name: 'AR Builders', 
+            img: 'assets/IMG_0798.PNG',
+            work: 'Contractor',
+            city: 'Kerala, India',
+            hometown: 'Kerala, India',
+            status: 'Business',
+            associates: ['sk']
+        },
+        'pillai': { 
+            name: 'Bhaskara Pillai', 
+            img: 'assets/IMG_0825.PNG',
+            work: 'Associate',
+            city: 'Kerala, India',
+            hometown: 'Kerala, India',
+            status: 'Married',
+            associates: ['sk', 'shahu']
+        },
+        'shahu': { 
+            name: 'Shahu',
+            img: 'assets/IMG_0920.PNG',
+            work: 'Driver at Persian Oil',
+            city: 'Abu Dhabi, UAE',
+            hometown: 'Kerala, India',
+            status: 'Single',
+            associates: ['sk', 'pillai']
+        },
+        'ponnappan': {
+            name: 'Ponnappan',
+            img: 'assets/IMG_0835.PNG',
+            work: 'Driver',
+            city: 'Kerala, India',
+            hometown: 'Kerala, India',
+            status: 'Complicated',
+            associates: ['sk']
+        },
+        'walid': {
+            name: 'Walid',
+            img: 'assets/IMG_0938.PNG',
+            work: 'Business Partner',
+            city: 'Abu Dhabi, UAE',
+            hometown: 'Unknown',
+            status: 'Unknown',
+            associates: ['sk']
+        }
+    };
+
+    const wallData = {
+        'sk': [
+            {
+                author: 'sk',
+                text: '',
+                image: 'assets/IMG_0812.PNG',
+                date: '15 Oct 1983',
+                likes: 12,
+                comments: []
+            },
+            {
+                author: 'sk',
+                text: '',
+                image: 'assets/IMG_0810.PNG',
+                date: 'Sep 1983',
+                likes: 15,
+                comments: []
+            },
+            {
+                author: 'sk',
+                text: '',
+                image: 'assets/IMG_0807.PNG',
+                date: 'June 1983',
+                likes: 10,
+                comments: []
+            },
+            {
+                author: 'sk',
+                text: 'Lake Urumia',
+                image: 'assets/IMG_0811.PNG',
+                date: '14 Jan 1981',
+                likes: 8,
+                comments: []
+            }
+        ],
+        'sharadha': [
+            {
+                author: 'sharadha',
+                text: 'brother🤍',
+                image: 'assets/IMG_0890.PNG',
+                date: '1983',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'sharadha',
+                text: '❤️',
+                image: 'assets/IMG_0799.PNG',
+                date: '1975',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'sharadha',
+                text: 'With him',
+                image: 'assets/IMG_0796.PNG',
+                date: '1974',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'sharadha',
+                text: 'Sunday Fun Day',
+                image: 'assets/IMG_0914.PNG',
+                date: '1974',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'lalitha': [
+            {
+                author: 'lalitha',
+                text: 'with my friends💮',
+                image: 'assets/IMG_0935.PNG',
+                date: '1979',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'izaakh': [
+            {
+                author: 'izaakh',
+                text: 'tea time with buddy🫂',
+                image: 'assets/IMG_0926.PNG',
+                date: '1980',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'leo': [
+            {
+                author: 'leo',
+                text: 'landed back at abu Dhabi',
+                image: 'assets/IMG_0828.PNG',
+                date: 'Aug 1983',
+                likes: 42,
+                comments: []
+            },
+            {
+                author: 'leo',
+                text: 'Gang',
+                image: 'assets/IMG_0826.PNG',
+                date: '12 Nov 1981',
+                likes: 34,
+                comments: []
+            },
+            {
+                author: 'leo',
+                text: 'with US president',
+                image: 'assets/IMG_0831.png',
+                date: '15 Jan 1981',
+                likes: 58,
+                comments: []
+            },
+            {
+                author: 'leo',
+                text: 'mamukka🤍',
+                image: 'assets/IMG_0833.PNG',
+                date: '1981',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'leo',
+                text: 'MODI BRO',
+                image: 'assets/IMG_0922.PNG',
+                date: '1980',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'pillai': [
+            {
+                author: 'pillai',
+                text: 'best time with machu🫂🤍 #ponnappan',
+                image: 'assets/IMG_0901.PNG',
+                date: '1982 Nov',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'pillai',
+                text: '',
+                image: 'assets/IMG_0825.png',
+                date: '10 Jan 1984',
+                likes: 5,
+                comments: []
+            },
+            {
+                author: 'pillai',
+                text: '',
+                image: 'assets/IMG_0823.PNG',
+                date: '1981',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'pillai',
+                text: 'mass🔥',
+                image: 'assets/IMG_0822.PNG',
+                date: '1981',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'shahu': [
+            {
+                author: 'shahu',
+                text: 'With my frnd #kurup',
+                image: 'assets/IMG_0919.PNG',
+                date: '1979',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'ar_builders': [
+            {
+                author: 'ar_builders',
+                text: "Mammuka's house",
+                image: 'assets/IMG_0894.PNG',
+                date: '1985',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'ar_builders',
+                text: 'customer 156 is very happy with our work #thalassery#kerala',
+                image: 'assets/IMG_0907.JPG.jpeg',
+                date: '1976',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'ar_builders',
+                text: 'lal sir and family ❤️ #happycustamer',
+                image: 'assets/IMG_0906.PNG',
+                date: '1976',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'ar_builders',
+                text: 'work in process #s.kurupp',
+                image: 'assets/IMG_0903.PNG',
+                date: '1976',
+                likes: 0,
+                comments: [
+                    {
+                        author: 'Walid',
+                        text: "The house may have been left unfinished,\nbut the answer was never left incomplete.\nDon't read between the lines.\nRead where every line begins",
+                        time: '10:32 PM'
+                    }
+                ]
+            },
+            {
+                author: 'ar_builders',
+                text: 'yusuf ikka is happy with our work🫂',
+                image: 'assets/IMG_0911.PNG',
+                date: '1975',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'ar_builders',
+                text: 'renovation successfully completed. #happycustomer',
+                image: 'assets/IMG_0916.PNG',
+                date: '1974',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'ponnappan': [
+            {
+                author: 'ponnappan',
+                text: '',
+                image: 'assets/IMG_0836.PNG',
+                date: '1978',
+                likes: 0,
+                comments: []
+            },
+            {
+                author: 'ponnappan',
+                text: '@kozhikode',
+                image: 'assets/IMG_0834.PNG',
+                date: '1977',
+                likes: 0,
+                comments: []
+            }
+        ],
+        'walid': [
+            {
+                author: 'walid',
+                text: 'wife👩‍❤️‍💋‍👨',
+                image: 'assets/IMG_0940.PNG',
+                date: '1982',
+                likes: 0,
+                comments: []
+            }
+        ]
+    };
+
+    // --- CHAT TRANSCRIPTS ---
+    // The conversations are NOT stored as readable text in this file. They are
+    // encoded in the #chat-blob block above and decoded at runtime, so that
+    // "view source" does not hand over the whole investigation.
+    //
+    // To edit the chats, edit chat-data.json and run:  node tools/build-chats.js
+    const CHAT_BLOB_KEY = 'kurup-abu-dhabi-1984';
+
+    // Must stay identical to keyStream() in tools/build-chats.js
+    function chatKeyStream(len) {
+        let h = 0x811c9dc5;
+        for (let i = 0; i < CHAT_BLOB_KEY.length; i++) {
+            h = (h ^ CHAT_BLOB_KEY.charCodeAt(i)) >>> 0;
+            h = Math.imul(h, 0x01000193) >>> 0;
+        }
+        const out = new Uint8Array(len);
+        let s = h || 1;
+        for (let i = 0; i < len; i++) {
+            s = (s ^ (s << 13)) >>> 0;
+            s = (s ^ (s >>> 17)) >>> 0;
+            s = (s ^ (s << 5)) >>> 0;
+            out[i] = s & 0xff;
+        }
+        return out;
+    }
+
+    function readChatBlob() {
+        const raw = document.getElementById('chat-blob').textContent.replace(/\s+/g, '');
+        const bin = atob(raw);
+        const ks = chatKeyStream(bin.length);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) {
+            bytes[i] = bin.charCodeAt(i) ^ ks[i];
+        }
+        return new TextDecoder().decode(bytes);
+    }
+
+    const chatData = JSON.parse(readChatBlob());
+
+    // --- CHAT ACCESS KEYS ---
+    // Each conversation has its own password. A chat listed here stays locked
+    // until a participant types its key; the text inside is still ciphered by
+    // the normal puzzle below. 'sharadha' is deliberately absent -- it is the
+    // only conversation that opens without a key.
+    //
+    // FACILITATOR: this is where you set each key. Replace the sample values
+    // below with your own. Keys are compared case-insensitively, and
+    // whitespace is ignored.
+    //
+    // These live in plain text in this file. As the note in tools/build-chats.js
+    // says, anything the browser can decrypt it can also be read back. This
+    // stops casual clicking, not a determined participant with DevTools.
+    const CHAT_KEYS = {
+        'pillai': '636',
+        'ponnappan': '7831',
+        'izaakh': '21A',
+        'leo': '120515',
+        'ar_builders': '369'
+    };
+
+    // Conversations that open with NO access key. The lock is an extra gate on
+    // top of the letter cipher, not a replacement for it: every conversation,
+    // these included, still has its text ciphered. Sharadha is the only one
+    // that skips the key.
+    const KEYLESS_CHATS = ['sharadha'];
+
+    // Conversations with no password box. They stay locked until EVERY chat in
+    // CHAT_KEYS has been unlocked, then all of them open at once.
+    const AUTO_UNLOCK_CHATS = ['lalitha', 'shahu', 'walid'];
+
+    let cipherMap = {};
+    let solvedCiphers = {}; 
+    let letterLockouts = {}; 
+    let lockoutInterval = null;
+    let currentSolveChar = null;
+    let unlockedChats = new Set();
+    let pendingLockChat = null;
+    let currentSolveContext = null;
+    
+    // UI State
+    let currentProfileId = 'sk';
+    let isChatListOpen = true;
+    // Comment threads on the wall start folded. Keys are "<profileId>-<postIndex>"
+    // and they survive the re-render that happens when a status is posted.
+    let openCommentThreads = new Set();
+    // Sharadha open by default: she is the one conversation with no access key,
+    // so the page has a thread on screen the moment a participant enters.
+    let openChatWindows = ['sharadha'];
+    
+    // QUICK DECRYPT STATE
+    // There is no button for this anywhere in the UI -- it was taking the puzzle
+    // away from anyone who found the panel, and it has been removed. The flag
+    // stays so a facilitator can still read the page out loud during a
+    // walkthrough, from the console only:
+    //     isAutoDecrypted = true; renderOpenChats();
+    let isAutoDecrypted = false;
+
+    // HIDDEN KEY TABLE
+    // Not listed anywhere in the nav bar. Participants are meant to go looking
+    // for it, and whichever way they find it the table opens straight away.
+    // Ways in, all of which look like ordinary page furniture:
+    //   - the small key in the corner of Kurup's profile photo (the main one)
+    //   - the little cog in the chat bar header
+    //   - the red INTERCEPTED tag on the briefing screen
+    //   - Ctrl + Shift + A
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+            e.preventDefault();
+            showKeyModal();
+        }
+    });
+
+    function openImageModal(src) {
+        document.getElementById('image-modal-img').src = src;
+        document.getElementById('image-modal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+        document.getElementById('image-modal').classList.add('hidden');
+        document.getElementById('image-modal-img').src = '';
+    }
+
+    function generateKey() {
+        const alphabet = "abcdefghijklmnopqrstuvwxyz";
+        const shuffled = alphabet.split('').sort(() => 0.5 - Math.random()).join('');
+        cipherMap = {};
+        for (let i = 0; i < alphabet.length; i++) {
+            const real = alphabet[i];
+            const secret = shuffled[i];
+            cipherMap[real] = secret;
+            cipherMap[real.toUpperCase()] = secret.toUpperCase();
+        }
+    }
+
+    generateKey();
+
+    function enterGame() {
+        document.getElementById('start-overlay').classList.add('hidden');
+        loadProfile('sk');
+        renderChatList();
+        renderOpenChats();
+    }
+
+    function loadProfile(id) {
+        if(!contactDB[id]) return;
+        currentProfileId = id;
+        
+        const profile = contactDB[id];
+        const firstName = profile.name.split(' ')[0];
+
+        // Only show post box if on Sukumara Kurup's profile
+        const statusBox = document.getElementById('status-box-container');
+        if (id === 'sk') {
+            statusBox.style.display = 'flex';
+        } else {
+            statusBox.style.display = 'none';
+        }
+
+        document.getElementById('sidebar-img').src = profile.img;
+        // The hidden admin key sits on Kurup's photo only, so it has to be
+        // switched on and off as the wall navigates between profiles.
+        document.getElementById('pic-admin-key').style.display = (id === 'sk') ? 'flex' : 'none';
+        document.getElementById('sidebar-photos-link').innerText = `View Photos of ${firstName} (2)`;
+        document.getElementById('sidebar-msg-link').innerText = `Send ${firstName} a Message`;
+        
+        document.getElementById('sidebar-work').innerText = profile.work;
+        document.getElementById('sidebar-city').innerText = profile.city;
+        document.getElementById('sidebar-hometown').innerText = profile.hometown;
+        document.getElementById('sidebar-status').innerText = profile.status;
+        
+        document.getElementById('sidebar-assoc-count').innerText = profile.associates.length;
+        let assocHtml = '';
+        profile.associates.forEach(assocId => {
+            const assoc = contactDB[assocId];
+            assocHtml += `<img src="${assoc.img}" onclick="loadProfile('${assocId}')" class="w-full h-auto cursor-pointer border border-gray-300 hover:border-fb-blue transition-colors object-cover aspect-square" title="${assoc.name}">`;
+        });
+        document.getElementById('sidebar-assoc-list').innerHTML = assocHtml;
+
+        document.getElementById('wall-header-name').innerText = profile.name;
+
+        renderWallPosts();
+        window.scrollTo(0, 0);
+    }
+
+    function postStatus() {
+        if (currentProfileId !== 'sk') return;
+        
+        const input = document.getElementById('status-input');
+        const text = input.value.trim();
+        
+        if (!text) return; 
+
+        const newPost = {
+            author: 'sk',
+            text: text,
+            date: 'Just now',
+            likes: 0,
+            comments: []
+        };
+
+        wallData['sk'].unshift(newPost);
+        input.value = '';
+        renderWallPosts();
+    }
+
+    // The header Messages dropdown and its outside-click handler are gone with
+    // the markup. The chat list in the right column is the only way in now.
+
+    // Turns one chat message into ciphered HTML. The letters are replaced by
+    // their cipher twin and become clickable; a solved letter comes back as
+    // itself. Everything that is not a letter is copied through untouched, so
+    // escape it on the way past.
+    function applyCipher(text, contextId) {
+        if (!text) return '';
+        const localSolved = (contextId && solvedCiphers[contextId]) ? solvedCiphers[contextId] : new Set();
+        let resultHtml = '';
+        for (let i = 0; i < text.length; i++) {
+            const realChar = text[i];
+            
+            if (!/[a-zA-Z]/.test(realChar)) {
+                if (realChar === '\n') {
+                    resultHtml += '<br>';
+                } else {
+                    resultHtml += escapeHtml(realChar);
+                }
+                continue;
+            }
+
+            const cipherChar = cipherMap[realChar];
+            if (!cipherChar) {
+                resultHtml += realChar;
+                continue;
+            }
+
+            const isLocked = letterLockouts[cipherChar] && letterLockouts[cipherChar] > Date.now();
+
+            if (isAutoDecrypted || localSolved.has(cipherChar)) {
+                resultHtml += `<span class="solved-char">${realChar}</span>`;
+            } else {
+                const lockClass = isLocked ? 'locked' : '';
+                const safeCipher = cipherChar.replace("'", "\\'"); 
+                resultHtml += `<span class="cipher-char ${lockClass}" onclick="event.stopPropagation(); openSolver('${safeCipher}', '${contextId}')">${cipherChar}</span>`;
+            }
+        }
+        return resultHtml;
+    }
+
+    function renderWallPosts() {
+        const container = document.getElementById('wall-posts');
+        const posts = wallData[currentProfileId] || [];
+
+        if (posts.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-500 py-8 text-sm border border-fb-border bg-white shadow-sm">No recent posts to display.</div>';
+            return;
+        }
+
+        let html = '';
+        posts.forEach((post, postIndex) => {
+            const author = contactDB[post.author] || { name: post.author, img: 'https://ui-avatars.com/api/?name=?' };
+            const hasComments = post.comments && post.comments.length > 0;
+            const threadKey = `${currentProfileId}-${postIndex}`;
+
+            // The like summary stays put, exactly where Facebook leaves it.
+            let likesHtml = '';
+            if (post.likes > 0) {
+                likesHtml = `
+                <div class="bg-[#edeff4] mt-2 p-2 text-[11px] text-[#3b5998] flex items-center gap-1">
+                    <i class="fas fa-thumbs-up text-[#5b74a8]"></i> ${post.likes} people like this.
+                </div>`;
+            }
+
+            // Everything the Comment link reveals: the thread itself and the
+            // write box. Hidden until that link is used, so the AR Builders
+            // hint is not sitting on the wall in plain sight.
+            let threadHtml = `
+            <div id="thread-${threadKey}" class="bg-[#edeff4] mt-2 pt-1 pb-2 ${openCommentThreads.has(threadKey) ? '' : 'hidden'}">`;
+
+            if (hasComments) {
+                post.comments.forEach(comment => {
+                    const cAuthorImg = comment.author === 'Sukumara Kurup' ? contactDB['sk'].img : author.img;
+                    
+                    threadHtml += `
+                    <div class="flex px-2 py-1 mt-1">
+                        <img src="${cAuthorImg}" class="w-8 h-8 mr-2 border border-gray-300">
+                        <div class="text-[11px] leading-snug">
+                            <a href="#" class="font-bold text-fb-link hover:underline">${comment.author}</a> 
+                            <span class="text-fb-text">${comment.text.replace(/\n/g, '<br>')}</span>
+                            <div class="text-gray-400 mt-0.5">${comment.time}</div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            threadHtml += `
+                <div class="flex px-2 py-2 mt-1 ${hasComments ? 'border-t border-white' : ''}">
+                    <input type="text" class="w-full border border-gray-300 h-6 px-1 text-[11px]" placeholder="Write a comment...">
+                </div>
+            </div>`;
+
+            // Construct post image if present
+            let postImageHtml = '';
+            if (post.image) {
+                postImageHtml = `<img src="${post.image}" class="w-full max-w-[400px] border border-gray-300 mb-2 cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageModal('${post.image}')">`;
+            }
+
+            html += `
+            <div class="flex mb-6 text-[12px] w-full">
+                <img src="${author.img}" class="w-[50px] h-[50px] mr-3 border border-gray-300 shrink-0 object-cover">
+                <div class="flex-1">
+                    <div class="mb-1">
+                        <a href="#" class="font-bold text-fb-link hover:underline text-[13px]" onclick="loadProfile('${post.author}')">${author.name}</a>
+                    </div>
+                    <div class="text-[#333333] leading-relaxed mb-2 pr-4">
+                        ${post.text.replace(/\n/g, '<br>')}
+                    </div>
+                    ${postImageHtml}
+                    <div class="text-gray-500 text-[11px] mt-1">
+                        ${post.date} · <a href="#" class="text-fb-link hover:underline" onclick="toggleCommentThread(event, '${threadKey}')">Comment</a> · <a href="#" class="text-fb-link hover:underline">Like</a>
+                    </div>
+                    ${likesHtml}
+                    ${threadHtml}
+                </div>
+            </div>
+            <div class="w-full h-px bg-gray-200 mb-6"></div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // The only way into a comment thread. The link toggles it shut again.
+    function toggleCommentThread(e, key) {
+        if (e) e.preventDefault();
+        const thread = document.getElementById('thread-' + key);
+        if (!thread) return;
+
+        if (openCommentThreads.has(key)) {
+            openCommentThreads.delete(key);
+        } else {
+            openCommentThreads.add(key);
+        }
+        thread.classList.toggle('hidden');
+    }
+
+    function toggleChatList() {
+        isChatListOpen = !isChatListOpen;
+        const list = document.getElementById('chat-friend-list');
+        if(isChatListOpen) {
+            list.classList.remove('hidden');
+        } else {
+            list.classList.add('hidden');
+        }
+    }
+
+    function renderChatList() {
+        const list = document.getElementById('chat-friend-list');
+        let html = '';
+        
+        Object.keys(chatData).forEach(id => {
+            const friend = contactDB[id];
+            const locked = isChatLocked(id);
+            const autoLocked = locked && !chatNeedsKey(id);
+            html += `
+            <div class="flex items-center p-2 hover:bg-[#edeff4] cursor-pointer border-b border-gray-100" onclick="openChatWindow('${id}')">
+                <img src="${friend.img}" class="w-8 h-8 mr-2 border border-gray-300 object-cover ${locked ? 'grayscale' : ''}">
+                <span class="text-[11px] text-gray-700 font-bold">${friend.name}</span>
+                ${autoLocked
+                    ? '<i class="fas fa-hourglass-half ml-auto text-[10px] text-gray-400" title="Unlocks when all keys are found"></i>'
+                    : locked
+                        ? '<i class="fas fa-lock ml-auto text-[10px] text-gray-400" title="Key required"></i>'
+                        : '<div class="ml-auto w-2 h-2 bg-green-500 rounded-full border border-green-700"></div>'}
+            </div>`;
+        });
+        
+        list.innerHTML = html;
+        if(isChatListOpen) list.classList.remove('hidden');
+    }
+
+    // Three tiers, and they stack. Every conversation is ciphered; these tiers
+    // only decide whether you are allowed to SEE the ciphered text yet:
+    //   KEYLESS_CHATS    open, no key asked (sharadha)
+    //   CHAT_KEYS        locked until that chat's own key is entered
+    //   AUTO_UNLOCK      locked until ALL keys are found, no password box
+    function isChatLocked(id) {
+        if (KEYLESS_CHATS.includes(id)) return false;
+        if (AUTO_UNLOCK_CHATS.includes(id)) return !allKeysFound();
+        return !!CHAT_KEYS[id] && !unlockedChats.has(id);
+    }
+
+    // True once every keyed conversation has been opened.
+    function allKeysFound() {
+        return Object.keys(CHAT_KEYS).every(id => unlockedChats.has(id));
+    }
+
+    function chatNeedsKey(id) {
+        return !!CHAT_KEYS[id];
+    }
+
+    function normaliseKey(str) {
+        return String(str).trim().replace(/\s+/g, '').toUpperCase();
+    }
+
+    // The letter cipher covers EVERY conversation. The access key is a separate
+    // gate in front of it (see isChatLocked) -- an extra hurdle, never a
+    // replacement for the puzzle. Flip this to false only if you want to read
+    // the chats as plain text while testing something else.
+    const CIPHER_ALL_CHATS = true;
+
+    function chatIsCiphered() {
+        return CIPHER_ALL_CHATS;
+    }
+
+    // Chat bodies reach innerHTML through applyCipher, which only ever emits
+    // spans for the ciphered letters. Everything else it copies straight
+    // through, so escape those characters here.
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    // Threads read in date order, oldest message first, so a conversation
+    // plays forward from where it started. Dates are "22 Jan 1984" and times
+    // are "05:00 AM", so both are parsed into one comparable number.
+    const CHAT_MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+
+    function messageStamp(msg) {
+        let stamp = 0;
+        const d = String(msg.date || '').match(/^(\d{1,2})\s+([A-Za-z]{3})[a-z]*\.?\s+(\d{4})$/);
+        if (d && CHAT_MONTHS[d[2].toLowerCase()] !== undefined) {
+            stamp = Date.UTC(+d[3], CHAT_MONTHS[d[2].toLowerCase()], +d[1]);
+        }
+        const t = String(msg.time || '').match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+        if (t) {
+            let hours = +t[1] % 12;
+            if (t[3].toUpperCase() === 'PM') hours += 12;
+            stamp += hours * 3600000 + (+t[2]) * 60000;
+        }
+        return stamp;
+    }
+
+    // Sort a COPY -- chatData is the decoded transcript and stays as authored.
+    // The index tiebreak keeps two messages from the same minute in the order
+    // they were written.
+    function messagesOldestFirst(messages) {
+        return messages
+            .map((msg, i) => ({ msg, i }))
+            .sort((a, b) => (messageStamp(a.msg) - messageStamp(b.msg)) || (a.i - b.i))
+            .map(entry => entry.msg);
+    }
+
+    function openChatWindow(id) {
+        if (isChatLocked(id)) {
+            openChatLockModal(id);
+            return;
+        }
+        openChatWindows = [id];
+        renderOpenChats();
+        renderChatList();
+    }
+
+    function openChatLockModal(id) {
+        pendingLockChat = id;
+        const friend = contactDB[id];
+        const needsKey = chatNeedsKey(id);
+        const input = document.getElementById('chat-lock-input');
+        const submitBtn = document.getElementById('chat-lock-submit-btn');
+        const msg = document.getElementById('chat-lock-msg');
+
+        document.getElementById('chat-lock-img').src = friend.img;
+        input.value = '';
+
+        // Auto-unlock chats get NO password box -- just an explanation.
+        document.getElementById('chat-lock-input-wrap').style.display = needsKey ? '' : 'none';
+        submitBtn.style.display = needsKey ? '' : 'none';
+
+        if (needsKey) {
+            document.getElementById('chat-lock-desc').innerText = 'This conversation is locked. Enter the key to unlock it.';
+            msg.innerText = '';
+            msg.className = 'text-xs h-4 mb-1 text-center';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            document.getElementById('chat-lock-desc').innerText = 'This conversation is locked.';
+            const left = Object.keys(CHAT_KEYS).filter(k => !unlockedChats.has(k)).length;
+            msg.innerText = `It unlocks automatically once every encrypted key has been recovered. ${left} key${left === 1 ? '' : 's'} still outstanding.`;
+            msg.className = 'text-xs mb-1 text-center text-gray-600';
+        }
+
+        document.getElementById('chat-lock-modal').classList.remove('hidden');
+        if (needsKey) input.focus();
+    }
+
+    function closeChatLockModal() {
+        document.getElementById('chat-lock-modal').classList.add('hidden');
+        document.getElementById('chat-lock-input').value = '';
+        pendingLockChat = null;
+    }
+
+    function submitChatLockKey() {
+        if (!pendingLockChat) return;
+        const id = pendingLockChat;
+        if (!chatNeedsKey(id)) { closeChatLockModal(); return; }
+        const expected = normaliseKey(CHAT_KEYS[id]);
+        const given = normaliseKey(document.getElementById('chat-lock-input').value);
+
+        if (given && given === expected) {
+            unlockedChats.add(id);
+            closeChatLockModal();
+            // Open whatever they clicked. If that was the final key, the
+            // auto-unlock chats open too, so go to the chat they asked for.
+            if (isChatLocked(id)) return;
+            openChatWindows = [id];
+            renderOpenChats();
+            renderChatList();
+        } else {
+            const msg = document.getElementById('chat-lock-msg');
+            msg.innerText = given ? 'Incorrect key. Conversation remains locked.' : 'Enter a key.';
+            msg.className = 'text-xs h-4 mb-1 text-center text-red-600 font-bold';
+        }
+    }
+
+    // Enter submits, matching how the solver modal behaves.
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !document.getElementById('chat-lock-modal').classList.contains('hidden')) {
+            e.preventDefault();
+            submitChatLockKey();
+        }
+    });
+
+    function closeChatWindow(id) {
+        openChatWindows = [];
+        renderOpenChats();
+    }
+
+    function renderOpenChats() {
+        const container = document.getElementById('active-chats-area');
+        let html = '';
+
+        // This function wipes and rebuilds the whole chat area (innerHTML below),
+        // which throws away scrollTop. Decrypting a letter calls renderOpenChats(),
+        // so without this the thread would jump to the bottom mid-read. Remember
+        // where each already-open chat was scrolled to before the rebuild.
+        const savedScroll = {};
+        openChatWindows.forEach(id => {
+            const existing = document.getElementById(`chat-messages-${id}`);
+            if (existing) savedScroll[id] = existing.scrollTop;
+        });
+        
+        openChatWindows.forEach(id => {
+            const data = chatData[id];
+            const friend = contactDB[id];
+            if (!data || !friend) return;
+            // Belt and braces: never render a locked conversation, however it
+            // ended up in openChatWindows.
+            if (isChatLocked(id)) return;
+            
+            let messagesHtml = '';
+            let lastDate = '';
+            let firstDateGroup = true;
+
+            messagesOldestFirst(data.messages).forEach(msg => {
+                const isMe = msg.sender === 'Sukumara Kurup';
+                const nameColor = isMe ? 'text-gray-500' : 'text-fb-link';
+                
+                // Add a date header if the date changes. Sorting by the date
+                // keeps each day's messages together, so the groups line up.
+                if (msg.date !== lastDate) {
+                    // No divider above the first group -- it sits at the very
+                    // top of the thread.
+                    const sep = firstDateGroup ? '' : 'border-t border-gray-100';
+                    messagesHtml += `<div class="text-center text-gray-400 text-[9px] font-bold my-3 pt-1 ${sep}">${msg.date}</div>`;
+                    lastDate = msg.date;
+                    firstDateGroup = false;
+                }
+                
+                let msgContentHtml = '';
+                if (msg.image) {
+                    msgContentHtml = `<img src="${msg.image}" class="w-full max-w-[200px] h-auto border border-gray-300 mt-1 mb-1 rounded-sm shadow-sm cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageModal('${msg.image}')">`;
+                } 
+                if (msg.text) {
+                    // Unlocking a chat only gets you to the puzzle -- the
+                    // letters are still ciphered until you work them out.
+                    const body = chatIsCiphered(id)
+                        ? applyCipher(msg.text, id)
+                        : escapeHtml(msg.text).replace(/\n/g, '<br>');
+                    msgContentHtml += `<div class="text-gray-800">${body}</div>`;
+                }
+
+                messagesHtml += `
+                <div class="mb-2 text-[12px] leading-relaxed">
+                    <span class="font-bold ${nameColor}">${msg.sender}:</span> 
+                    ${msgContentHtml}
+                    <span class="text-gray-400 text-[9px] ml-1">(${msg.time})</span>
+                </div>`;
+            });
+
+            html += `
+            <div class="fb-chat-window" id="chat-window-${id}">
+                <div class="fb-chat-header" onclick="closeChatWindow('${id}')">
+                    <div class="flex items-center gap-1">
+                        <div class="w-2 h-2 bg-green-400 rounded-full border border-green-700"></div>
+                        <span>${friend.name}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-300 hover:text-white">
+                        <i class="fas fa-times text-[10px]"></i>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-3 bg-white flex flex-col border-x border-gray-300" id="chat-messages-${id}">
+                    ${messagesHtml}
+                </div>
+                <div class="border-t border-gray-300 p-1 bg-white border-x border-b">
+                    <input type="text" class="w-full text-[11px] p-1.5 focus:outline-none" placeholder="Reply...">
+                </div>
+            </div>`;
+        });
+        
+        container.innerHTML = html;
+        
+        openChatWindows.forEach(id => {
+            const msgArea = document.getElementById(`chat-messages-${id}`);
+            if (!msgArea) return;
+            // A chat that was already on screen goes back to where it was left.
+            // A chat opened just now has no saved position, so start at the top
+            // -- which, with the thread in date order, is where it all began.
+            msgArea.scrollTop = (id in savedScroll) ? savedScroll[id] : 0;
+        });
+    }
+
+    function openSolver(char, contextId) {
+        if (letterLockouts[char] && letterLockouts[char] > Date.now()) {
+            currentSolveChar = char;
+            currentSolveContext = contextId;
+            document.getElementById('solver-modal').classList.remove('hidden');
+            startLockout(char); 
+            return;
+        }
+
+        currentSolveChar = char;
+        currentSolveContext = contextId;
+        
+        document.getElementById('solver-target').innerText = char;
+        document.getElementById('solver-input').value = '';
+        document.getElementById('solver-input').disabled = false;
+        document.getElementById('solver-msg').innerText = '';
+        document.getElementById('solver-timer').classList.add('hidden');
+        document.getElementById('solver-submit-btn').disabled = false;
+        document.getElementById('solver-submit-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        document.getElementById('solver-modal').classList.remove('hidden');
+        document.getElementById('solver-input').focus();
+    }
+
+    function closeSolver() {
+        if (lockoutInterval) clearInterval(lockoutInterval);
+        document.getElementById('solver-modal').classList.add('hidden');
+    }
+
+    function startLockout(char) {
+        const timerDisplay = document.getElementById('solver-timer');
+        const submitBtn = document.getElementById('solver-submit-btn');
+        const input = document.getElementById('solver-input');
+        const msg = document.getElementById('solver-msg');
+        
+        timerDisplay.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        input.disabled = true;
+        input.value = '';
+        
+        document.getElementById('solver-target').innerText = char;
+
+        if (lockoutInterval) clearInterval(lockoutInterval);
+
+        const updateTimer = () => {
+            const remaining = Math.ceil((letterLockouts[char] - Date.now()) / 1000);
+            if (remaining <= 0) {
+                clearInterval(lockoutInterval);
+                timerDisplay.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                input.disabled = false;
+                input.focus();
+                msg.innerText = "Security block lifted. Try again.";
+                msg.className = "text-xs h-4 mb-2 text-center text-green-600 font-bold";
+                delete letterLockouts[char];
+                
+                renderOpenChats(); 
+            } else {
+                timerDisplay.innerText = `LOCKED: ${remaining}s`;
+                msg.innerText = "Incorrect decipher attempt. Access restricted.";
+                msg.className = "text-xs h-4 mb-2 text-center text-red-600 font-bold";
+            }
+        };
+
+        updateTimer();
+        lockoutInterval = setInterval(updateTimer, 1000);
+        renderOpenChats(); 
+    }
+
+    function submitSolution() {
+        if (letterLockouts[currentSolveChar] && letterLockouts[currentSolveChar] > Date.now()) return;
+
+        const guess = document.getElementById('solver-input').value.toUpperCase();
+        if (!guess) return;
+
+        let correctRealChar = null;
+        for (const [real, cipher] of Object.entries(cipherMap)) {
+            if (cipher === currentSolveChar) {
+                correctRealChar = real;
+                break;
+            }
+        }
+
+        if (guess === correctRealChar.toUpperCase()) {
+            if (!solvedCiphers[currentSolveContext]) {
+                solvedCiphers[currentSolveContext] = new Set();
+            }
+            
+            const lowerCipher = currentSolveChar.toLowerCase();
+            const upperCipher = currentSolveChar.toUpperCase();
+            
+            solvedCiphers[currentSolveContext].add(lowerCipher);
+            solvedCiphers[currentSolveContext].add(upperCipher);
+            
+            document.getElementById('solver-msg').className = "text-xs h-4 mb-2 text-center text-green-600 font-bold";
+            document.getElementById('solver-msg').innerText = "Match found! Decrypting block...";
+            
+            setTimeout(() => {
+                closeSolver();
+                renderOpenChats();
+            }, 600);
+        } else {
+            letterLockouts[currentSolveChar] = Date.now() + 60000; 
+            startLockout(currentSolveChar);
+        }
+    }
+
+    document.getElementById('solver-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            submitSolution();
+        }
+    });
+
+    function showKeyModal() {
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let decMap = {};
+        for(let i=0; i<alphabet.length; i++) {
+            const real = alphabet[i];
+            const cipher = cipherMap[real].toUpperCase();
+            decMap[cipher] = real.toUpperCase();
+        }
+        const sortedKeys = Object.keys(decMap).sort();
+        
+        let html = '';
+        for (let i = 0; i < sortedKeys.length; i++) {
+            const cipher = sortedKeys[i];
+            const real = decMap[cipher];
+            html += `<div class="flex items-center justify-center border border-gray-200 py-1 bg-gray-50">
+                        <span class="text-red-500 font-bold text-lg w-6 text-center">${cipher}</span> 
+                        <i class="fas fa-arrow-right text-[10px] text-gray-400 mx-2"></i> 
+                        <span class="text-green-600 text-lg font-bold w-6 text-center">${real}</span>
+                     </div>`;
+        }
+        document.getElementById('key-content').innerHTML = html;
+        document.getElementById('key-modal').classList.remove('hidden');
+    }
+
+    function closeKeyModal() {
+        document.getElementById('key-modal').classList.add('hidden');
+    }
+
+  </script>
+</body>
+</html>
