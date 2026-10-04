@@ -271,6 +271,15 @@
       </div>
   </div>
 
+  <!-- KEY TABLE WAIT TOAST -->
+  <!-- Shown when someone finds a way into the key table before the key has
+       finished loading. Bottom-centre, self-hides, never blocks a click. -->
+  <div id="key-wait-toast" class="fixed bottom-6 left-0 right-0 z-[180] hidden pointer-events-none px-4">
+      <div class="mx-auto w-fit max-w-full bg-gray-900 text-white text-xs font-bold px-4 py-2 rounded shadow-lg text-center">
+          <span id="key-wait-msg"></span>
+      </div>
+  </div>
+
   <!-- CHAT LOCK MODAL -->
   <div id="chat-lock-modal" class="fixed inset-0 z-[170] bg-black/40 hidden flex items-center justify-center p-4">
       <div class="fb-dialog w-80 shadow-lg">
@@ -1112,6 +1121,81 @@ tpsit2fbfZ99MWXejp6MG1f4x0C2nmN8BWPN538U+icSmW1hxO2eyldEYeWJKLodXO6yldQGAmdJYy2o
     //   - the little cog in the chat bar header
     //   - the red INTERCEPTED tag on the briefing screen
     //   - Ctrl + Shift + A
+    //
+    // The table is not there for the first KEY_TABLE_DELAY_MS of the page's
+    // life -- it is still "loading". Clicking any of the ways in during that
+    // window gets a countdown toast instead of the table. The clock starts
+    // when this script runs, i.e. at page load, and it only ever runs once:
+    // every entry point goes through showKeyModal(), so gating it there covers
+    // all of them at once.
+    const KEY_TABLE_DELAY_MS = 40000;
+    const keyTableReadyAt = Date.now() + KEY_TABLE_DELAY_MS;
+    let keyWaitToastTimer = null;
+    let picKeyRevealTimer = null;
+
+    function isKeyTableReady() {
+        return Date.now() >= keyTableReadyAt;
+    }
+
+    // The key on Kurup's photo is not merely gated, it is absent. For the first
+    // KEY_TABLE_DELAY_MS there is nothing on screen to notice and nothing to
+    // click, which is the point: a visible-but-refusing key still tells the
+    // room the key exists. Once the clock runs out the key fades up by itself,
+    // without waiting for the wall to navigate somewhere and re-render.
+    function applyPicKeyVisibility(fade) {
+        const key = document.getElementById('pic-admin-key');
+        if (!key) return;
+
+        if (currentProfileId !== 'sk' || !isKeyTableReady()) {
+            key.style.display = 'none';
+            key.style.opacity = '';
+            return;
+        }
+
+        key.style.display = 'flex';
+
+        if (!fade) {
+            key.style.opacity = '';
+            return;
+        }
+
+        // Fade up from nothing. The inline opacity is cleared once the fade is
+        // over, otherwise it would outrank the .pic-admin-key hover rule and
+        // the key would stop brightening on hover.
+        key.style.opacity = '0';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            key.style.transition = 'opacity 1.2s ease';
+            key.style.opacity = '';
+            setTimeout(() => { key.style.transition = ''; }, 1300);
+        }));
+    }
+
+    function schedulePicKeyReveal() {
+        if (picKeyRevealTimer) clearTimeout(picKeyRevealTimer);
+        picKeyRevealTimer = setTimeout(
+            () => applyPicKeyVisibility(true),
+            Math.max(0, keyTableReadyAt - Date.now())
+        );
+    }
+
+    function showKeyWaitToast(secondsLeft) {
+        const toast = document.getElementById('key-wait-toast');
+        const msg = document.getElementById('key-wait-msg');
+        if (!toast || !msg) return;
+
+        msg.innerText = `Decryption key reference is still loading. Try again in ${secondsLeft}s.`;
+        toast.classList.remove('hidden');
+
+        if (keyWaitToastTimer) clearTimeout(keyWaitToastTimer);
+        keyWaitToastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
+    }
+
+    // Kick off the one-shot that puts the key on the photo when it is ready.
+    // Deliberately not tied to enterGame(): the delay is measured from page
+    // load, so a participant who sits on the briefing screen for a minute
+    // still finds the key there when they come in.
+    schedulePicKeyReveal();
+
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
             e.preventDefault();
@@ -1167,8 +1251,10 @@ tpsit2fbfZ99MWXejp6MG1f4x0C2nmN8BWPN538U+icSmW1hxO2eyldEYeWJKLodXO6yldQGAmdJYy2o
 
         document.getElementById('sidebar-img').src = profile.img;
         // The hidden admin key sits on Kurup's photo only, so it has to be
-        // switched on and off as the wall navigates between profiles.
-        document.getElementById('pic-admin-key').style.display = (id === 'sk') ? 'flex' : 'none';
+        // switched on and off as the wall navigates between profiles -- and
+        // it stays off until the load delay has elapsed. No fade here: moving
+        // between profiles should not re-announce the key.
+        applyPicKeyVisibility(false);
         document.getElementById('sidebar-photos-link').innerText = `View Photos of ${firstName} (2)`;
         document.getElementById('sidebar-msg-link').innerText = `Send ${firstName} a Message`;
         
@@ -1753,6 +1839,13 @@ tpsit2fbfZ99MWXejp6MG1f4x0C2nmN8BWPN538U+icSmW1hxO2eyldEYeWJKLodXO6yldQGAmdJYy2o
     });
 
     function showKeyModal() {
+        // Still loading? Say how long is left rather than opening the table.
+        const remaining = Math.ceil((keyTableReadyAt - Date.now()) / 1000);
+        if (remaining > 0) {
+            showKeyWaitToast(remaining);
+            return;
+        }
+
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let decMap = {};
         for(let i=0; i<alphabet.length; i++) {
