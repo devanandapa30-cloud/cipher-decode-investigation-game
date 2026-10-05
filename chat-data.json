@@ -323,7 +323,7 @@
             }
         ]
     },
-    "izaakh": {
+    "isaac": {
         "messages": [
             {
                 "sender": "Sukumara Kurup",
@@ -332,7 +332,7 @@
                 "time": "08:00 PM"
             },
             {
-                "sender": "Izaakh",
+                "sender": "Isaac",
                 "text": "I know someone.",
                 "date": "13 Feb 1984",
                 "time": "08:15 PM"
@@ -344,7 +344,7 @@
                 "time": "08:17 PM"
             },
             {
-                "sender": "Izaakh",
+                "sender": "Isaac",
                 "text": "Yes.",
                 "date": "13 Feb 1984",
                 "time": "08:20 PM"
@@ -356,20 +356,20 @@
                 "time": "08:25 PM"
             },
             {
-                "sender": "Izaakh",
+                "sender": "Isaac",
                 "text": "Of course.",
                 "date": "13 Feb 1984",
                 "time": "08:30 PM"
             },
             {
-                "sender": "Izaakh",
+                "sender": "Isaac",
                 "text": "",
                 "image": "assets/IMG_0827.PNG",
                 "date": "13 Feb 1984",
                 "time": "08:32 PM"
             },
             {
-                "sender": "Izaakh",
+                "sender": "Isaac",
                 "text": "“I have no mouth, yet I speak,\nno hands, yet I point.\nLook at the man who holds the night,\nbut not the man himself.\nWhat he carries is empty—\nfind the number behind the shadow.”",
                 "date": "13 Feb 1984",
                 "time": "08:35 PM"
@@ -381,7 +381,7 @@
                 "time": "08:40 PM"
             },
             {
-                "sender": "Izaakh",
+                "sender": "Isaac",
                 "text": "Good.",
                 "date": "13 Feb 1984",
                 "time": "08:42 PM"

@@ -30,8 +30,18 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const HTML_PATH = path.join(ROOT, 'facebook.html');
 const DATA_PATH = path.join(ROOT, 'chat-data.json');
+
+// The page that ships to participants. It was named facebook.html originally;
+// the repo now has index.html, so pick whichever actually exists.
+const HTML_PATH = ['index.html', 'facebook.html']
+  .map(f => path.join(ROOT, f))
+  .find(fs.existsSync);
+
+if (!HTML_PATH) {
+  console.error('ERROR: no index.html or facebook.html found next to chat-data.json');
+  process.exit(1);
+}
 
 const BLOB_OPEN = '<script type="text/plain" id="chat-blob">';
 const BLOB_CLOSE = '</script>';
